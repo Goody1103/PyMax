@@ -282,15 +282,26 @@ Socket connections may be unstable, SSL issues are possible.
             raise SocketNotConnectedError
 
         sock = self.sock
-        msg = self._make_message(opcode, payload, cmd)
+
+        # Generate unique seq that doesn't collide with pending requests
         loop = asyncio.get_running_loop()
+        max_attempts = 100
+        for attempt in range(max_attempts):
+            msg = self._make_message(opcode, payload, cmd)
+            seq_key = msg["seq"] % 256
+
+            # Check if this seq is already in use
+            if seq_key not in self._pending or self._pending[seq_key].done():
+                break
+
+            if attempt == max_attempts - 1:
+                self.logger.error(
+                    "Failed to find free seq after %d attempts! Forcing seq=%s",
+                    max_attempts,
+                    seq_key,
+                )
+
         fut: asyncio.Future[dict[str, Any]] = loop.create_future()
-        seq_key = msg["seq"] % 256
-
-        old_fut = self._pending.get(seq_key)
-        if old_fut and not old_fut.done():
-            old_fut.cancel()
-
         self._pending[seq_key] = fut
         try:
             self.logger.debug(
