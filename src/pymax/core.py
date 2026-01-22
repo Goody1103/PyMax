@@ -144,7 +144,7 @@ class MaxClient(ApiMixin, WebSocketMixin, BaseClient):
         self._sock_lock = asyncio.Lock()
         self._read_buffer = bytearray()
 
-        self._seq: int = -1
+        self._seq: int = 0
         self._error_count: int = 0
         self._circuit_breaker: bool = False
         self._last_error_time: float = 0.0
