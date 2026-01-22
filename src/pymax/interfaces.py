@@ -210,7 +210,8 @@ class BaseTransport(ClientProtocol):
     def _make_message(
         self, opcode: Opcode, payload: dict[str, Any], cmd: int = 0
     ) -> dict[str, Any]:
-        self._seq += 1
+        # Thread-safe sequence increment
+        self._seq = (self._seq + 1) & 0xFFFF  # Keep seq within 16-bit range
 
         msg = BaseWebSocketMessage(
             ver=11,
@@ -319,8 +320,15 @@ class BaseTransport(ClientProtocol):
                     self.logger.debug("Fulfilled file upload waiter for %s=%s", key, id_)
 
     async def _send_notification_response(self, chat_id: int, message_id: str) -> None:
+        # Only send notification response for WebSocket connections (not raw socket)
         if self._socket is not None:
             return
+
+        # Check if WebSocket is connected before sending
+        if self._ws is None or not self.is_connected:
+            self.logger.debug("Cannot send notification response: WebSocket not connected")
+            return
+
         await self._send_only(
             opcode=Opcode.NOTIF_MESSAGE,
             payload={"chatId": chat_id, "messageId": message_id},

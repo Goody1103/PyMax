@@ -469,6 +469,13 @@ Socket connections may be unstable, SSL issues are possible.
 
         old_fut = self._pending.get(seq_key)
         if old_fut and not old_fut.done():
+            self.logger.warning(
+                "!!! SEQ COLLISION: seq=%s already has pending future, cancelling old request. "
+                "Opcode=%s, total_pending=%s",
+                seq_key,
+                opcode,
+                len(self._pending),
+            )
             old_fut.cancel()
 
         self._pending[seq_key] = fut
