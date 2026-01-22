@@ -222,7 +222,7 @@ class StickerAttach:
         sticker_id: int,
         tags: list[str] | None,
         width: int,
-        set_id: int,
+        set_id: int | None,
         time: int,
         sticker_type: str,
         audio: bool,
@@ -251,7 +251,7 @@ class StickerAttach:
             sticker_id=data["stickerId"],
             tags=data.get("tags"),
             width=data["width"],
-            set_id=data["setId"],
+            set_id=data.get("setId"),
             time=data["time"],
             sticker_type=data["stickerType"],
             audio=data["audio"],
@@ -703,27 +703,6 @@ class Message:
     @classmethod
     def from_dict(cls, data: dict[Any, Any]) -> Self:
         message = data["message"] if data.get("message") else data
-
-        # Handle case where message is a string instead of dict
-        if isinstance(message, str):
-            # Return a minimal Message object with just the text
-            # Use current timestamp if time is not provided
-            import time as time_module
-            return cls(
-                chat_id=data.get("chatId"),
-                sender=data.get("senderId"),
-                elements=None,
-                options=None,
-                id=data.get("messageId"),
-                time=data.get("time") or int(time_module.time() * 1000),
-                text=message,
-                type=None,
-                attaches=[],
-                status=data.get("status"),
-                link=None,
-                reaction_info=None
-            )
-
         attaches: list[
             PhotoAttach
             | VideoAttach
@@ -1239,3 +1218,24 @@ class ReadState:
     @override
     def __str__(self) -> str:
         return f"ReadState: unread={self.unread}, mark={self.mark}"
+
+
+class Presence:
+    def __init__(self, user_id: int | None, seen: int | None) -> None:
+        self.user_id = user_id
+        self.last_seen = seen
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        return cls(
+            user_id=data.get("userId"),
+            seen=data.get("seen"),
+        )
+
+    @override
+    def __repr__(self) -> str:
+        return f"Presence(user_id={self.user_id!r}, last_seen={self.last_seen!r})"
+
+    @override
+    def __str__(self) -> str:
+        return f"Presence: user {self.user_id} last seen at {self.last_seen}"
