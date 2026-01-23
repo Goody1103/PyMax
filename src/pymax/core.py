@@ -131,6 +131,7 @@ class MaxClient(ApiMixin, WebSocketMixin, BaseClient):
         self.channels: list[Channel] = []
         self.me: Me | None = None
         self.contacts: list[User] = []
+        self.chat_marker: int | None = None
         self._users: dict[int, User] = {}
 
         self._work_dir: str = work_dir

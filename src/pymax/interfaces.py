@@ -535,6 +535,10 @@ class BaseTransport(ClientProtocol):
             if error := raw_payload.get("error"):
                 MixinsUtils.handle_error(data)
 
+            chat_marker = raw_payload.get("chatMarker")
+            if chat_marker:
+                self.chat_marker = chat_marker
+
             # Очищаем списки перед sync, чтобы избежать дублирования при повторном вызове
             self.dialogs.clear()
             self.chats.clear()
