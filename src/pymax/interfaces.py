@@ -250,12 +250,7 @@ class BaseTransport(ClientProtocol):
         else:
             result = handler(message)
         if asyncio.iscoroutine(result):
-            # IMPORTANT: Await handler completion instead of creating background task
-            # This ensures message processing finishes before server expects next action
-            try:
-                await result
-            except Exception as e:
-                self.logger.error(f"Error in message handler {handler.__name__}: {e}", exc_info=True)
+            self._create_safe_task(result, name=f"handler-{handler.__name__}")
 
     def _parse_json(self, raw: Any) -> dict[str, Any] | None:
         try:
@@ -534,6 +529,10 @@ class BaseTransport(ClientProtocol):
 
             if error := raw_payload.get("error"):
                 MixinsUtils.handle_error(data)
+
+            chat_marker = raw_payload.get("chatMarker")
+            if chat_marker:
+                self.chat_marker = chat_marker
 
             # Очищаем списки перед sync, чтобы избежать дублирования при повторном вызове
             self.dialogs.clear()

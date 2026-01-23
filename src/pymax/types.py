@@ -1239,3 +1239,24 @@ class ReadState:
     @override
     def __str__(self) -> str:
         return f"ReadState: unread={self.unread}, mark={self.mark}"
+
+
+class Presence:
+    def __init__(self, user_id: int | None, seen: int | None) -> None:
+        self.user_id = user_id
+        self.last_seen = seen
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        return cls(
+            user_id=data.get("userId"),
+            seen=data.get("seen"),
+        )
+
+    @override
+    def __repr__(self) -> str:
+        return f"Presence(user_id={self.user_id!r}, last_seen={self.last_seen!r})"
+
+    @override
+    def __str__(self) -> str:
+        return f"Presence: user_id={self.user_id}, last_seen={self.last_seen}"

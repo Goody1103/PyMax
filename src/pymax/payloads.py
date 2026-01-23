@@ -15,7 +15,14 @@ from pymax.static.constant import (
     DEFAULT_TIMEZONE,
     DEFAULT_USER_AGENT,
 )
-from pymax.static.enum import AttachType, AuthType, Capability, ContactAction, ReadAction
+from pymax.static.enum import (
+    AttachType,
+    AuthType,
+    Capability,
+    ContactAction,
+    ReadAction,
+    TypingType,
+)
 
 
 def to_camel(string: str) -> str:
@@ -401,3 +408,21 @@ class RequestEmailCodePayload(CamelModel):
 class SendEmailCodePayload(CamelModel):
     track_id: str
     verify_code: str
+
+
+class AddContactByPhonePayload(CamelModel):
+    phone: str
+    first_name: str
+
+
+class ContactPresencePayload(CamelModel):
+    contact_ids: list[int]
+
+
+class ApproveQrLoginPayload(CamelModel):
+    qr_link: str
+
+
+class SetTypingPayload(CamelModel):
+    chat_id: int
+    typing_type: TypingType = Field(default=TypingType.TEXT, alias="type")

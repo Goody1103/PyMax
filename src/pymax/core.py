@@ -131,6 +131,7 @@ class MaxClient(ApiMixin, WebSocketMixin, BaseClient):
         self.channels: list[Channel] = []
         self.me: Me | None = None
         self.contacts: list[User] = []
+        self.chat_marker: int | None = None
         self._users: dict[int, User] = {}
 
         self._work_dir: str = work_dir
@@ -147,8 +148,10 @@ class MaxClient(ApiMixin, WebSocketMixin, BaseClient):
         self._file_upload_waiters: dict[int, asyncio.Future[dict[str, Any]]] = {}
         self._background_tasks: set[asyncio.Task[Any]] = set()
         self._stop_event = asyncio.Event()
+        self._sock_lock = asyncio.Lock()
+        self._read_buffer = bytearray()
 
-        self._seq: int = 0
+        self._seq: int = -1
         self._error_count: int = 0
         self._circuit_breaker: bool = False
         self._last_error_time: float = 0.0
@@ -159,7 +162,8 @@ class MaxClient(ApiMixin, WebSocketMixin, BaseClient):
         self._token = self._database.get_auth_token() or token
         if headers is None:
             headers = self._default_headers()
-        self.user_agent = headers
+        self.headers = headers
+        self.user_agent = headers  # Backward compatibility
         self._validate_device_type()
         self._send_fake_telemetry: bool = send_fake_telemetry
         self._session_id: int = int(time.time() * 1000)
