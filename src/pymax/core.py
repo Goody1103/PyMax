@@ -148,8 +148,10 @@ class MaxClient(ApiMixin, WebSocketMixin, BaseClient):
         self._file_upload_waiters: dict[int, asyncio.Future[dict[str, Any]]] = {}
         self._background_tasks: set[asyncio.Task[Any]] = set()
         self._stop_event = asyncio.Event()
+        self._sock_lock = asyncio.Lock()
+        self._read_buffer = bytearray()
 
-        self._seq: int = 0
+        self._seq: int = -1
         self._error_count: int = 0
         self._circuit_breaker: bool = False
         self._last_error_time: float = 0.0
