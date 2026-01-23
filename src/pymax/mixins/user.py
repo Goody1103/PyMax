@@ -194,6 +194,34 @@ class UserMixin(ClientProtocol):
             return Contact.from_dict(contact_dict)
         raise ResponseStructureError("Wrong contact structure in response")
 
+    async def add_contact_by_phone(self, phone: str, first_name: str) -> Contact:
+        """
+        Добавляет контакт в список контактов по номеру телефона
+
+        :param phone: Номер телефона контакта
+        :type phone: str
+        :param first_name: Имя контакта
+        :type first_name: str
+        :return: Объект контакта
+        :rtype: Contact
+        :raises ResponseStructureError: Если структура ответа неверна
+
+        """
+
+        payload = AddContactByPhonePayload(phone=phone, first_name=first_name).model_dump(
+            by_alias=True
+        )
+
+        data = await self._send_and_wait(
+            opcode=Opcode.CONTACT_ADD_BY_PHONE,
+            payload=payload,
+        )
+
+        if data.get("payload", {}).get("error"):
+            MixinsUtils.handle_error(data)
+
+        return Contact.from_dict(data["payload"]["contact"])
+
     async def remove_contact(self, contact_id: int) -> Literal[True]:
         """
         Удаляет контакт из списка контактов

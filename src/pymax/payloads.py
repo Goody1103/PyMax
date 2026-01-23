@@ -63,7 +63,6 @@ class UserAgentPayload(CamelModel):
 class RequestCodePayload(CamelModel):
     phone: str
     type: AuthType = AuthType.START_AUTH
-    language: str = "ru"
 
 
 class SendCodePayload(CamelModel):
@@ -77,7 +76,7 @@ class SyncPayload(CamelModel):
     token: str
     chats_sync: int = 0
     contacts_sync: int = 0
-    presence_sync: int = 0
+    presence_sync: int = -1
     drafts_sync: int = 0
     chats_count: int = 40
     user_agent: UserAgentPayload = Field(
